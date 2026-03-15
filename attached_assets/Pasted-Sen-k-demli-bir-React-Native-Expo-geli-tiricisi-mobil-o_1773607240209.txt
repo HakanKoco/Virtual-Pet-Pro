@@ -1,0 +1,213 @@
+Sen kıdemli bir React Native / Expo geliştiricisi, mobil oyun tasarımcısı, UI/UX uzmanı ve clean code odaklı bir yazılım mühendisi gibi davran.
+
+Amacım, Replit üzerinde React Native (Expo) kullanarak Talking Tom / Talking Angela benzeri bir dijital evcil hayvan mobil oyunu geliştirmek.
+
+Uygulama, kullanıcıların bir evcil hayvanla etkileşime girebildiği, bakımını yapabildiği ve oyunlaştırma içeren bir mobil oyun olmalıdır.
+
+PROJE HEDEFİ
+Bu proje sadece basit bir demo olmamalı. Modern arayüzlü, etkileşimli, oyunlaştırılmış ve ürün hissi veren bir mobil uygulama olmalıdır.
+
+ÖNEMLİ GELİŞTİRME KURALLARI
+- Var olan temel mantığı bozma.
+- Gereksiz complexity ekleme.
+- Basit ama profesyonel bir çözüm üret.
+- Kod gerçekten çalışabilir olsun.
+- React Native ve Expo best practice’lerine uy.
+- UI modern, sade ve dengeli olsun.
+- Magic number kullanma; constants dosyaları oluştur.
+- Edge case’leri göz ardı etme.
+- Kod tekrarını azalt.
+- Reusable component kullan.
+- Kod üretmeden önce kısa bir plan ver.
+- Her aşamada sonraki mantıklı adımı belirt.
+
+UYGULAMANIN ANA FİKRİ
+Kullanıcı bir dijital evcil hayvan sahiplenir ve onun ihtiyaçlarıyla ilgilenir.
+
+Evcil hayvanın durumları:
+- hunger (açlık)
+- happiness (mutluluk)
+- energy (enerji)
+- cleanliness (temizlik)
+- health (sağlık)
+
+Stat değerleri 0–100 aralığında tutulmalıdır.
+
+OYUNLAŞTIRMA SİSTEMİ
+Uygulamada aşağıdaki sistemler bulunmalıdır:
+
+- XP sistemi
+- Level sistemi
+- Achievement / rozet sistemi
+- Streak sistemi
+- Günlük görevler
+- Coin / ödül sistemi
+
+Örnek rozetler:
+- İlk Besleme
+- Oyun Arkadaşı
+- Temizlik Ustası
+- 3 Günlük Streak
+- 100 XP Kazanıldı
+
+AKTİVİTE SİSTEMİ (Talking Tom tarzı)
+
+1. BESLEME
+Kullanıcı farklı yiyecekler seçebilir:
+- mama
+- balık
+- süt
+- ödül bisküvisi
+
+Yemek pet’e sürüklenebilir veya pet’in ağzına götürülebilir.
+
+Yemek verildiğinde:
+- açlık azalır
+- mutluluk artar
+- XP kazanılır
+
+Pet animasyon veya emoji ile tepki verir.
+
+2. OYUN
+Kullanıcı pet’e dokunarak onunla oynayabilir.
+
+Örneğin:
+- ekrana dokununca pet güler
+- kalpler veya yıldızlar çıkar
+- mutluluk artar
+- enerji biraz azalır
+- XP kazanılır
+
+3. UYUTMA
+Uyku moduna geçildiğinde:
+
+- oda karanlık olur
+- gece teması açılır
+- ay ve yıldızlar gösterilebilir
+- pet uyur
+
+Uyku sonrası:
+- enerji artar
+- sağlık biraz artar
+
+4. TEMİZLEME
+Pet kirliyse banyo yapılabilir.
+
+Etkileşimli banyo sistemi:
+
+- sabun pet’e sürülür
+- köpük oluşur
+- su ile durulanır
+- temizlik artar
+- mutluluk artar
+
+5. BAKIM
+Pet’in sağlık durumu düşerse bakım yapılabilir.
+
+Örnek:
+- vitamin
+- sevgi
+- kısa dinlenme
+
+EKRANLAR
+
+Home Screen
+- pet görünümü
+- pet adı
+- mood göstergesi
+- stat barları
+- hızlı aksiyon butonları
+- level ve XP
+
+Activities Screen
+- besleme
+- oynama
+- uyutma
+- temizleme
+- bakım
+
+Achievements Screen
+- kazanılan rozetler
+- kilitli rozetler
+
+Stats Screen
+- toplam besleme
+- toplam oyun
+- toplam temizlik
+- toplam XP
+- mevcut level
+- streak
+
+Settings Screen
+- pet adı değiştirme
+- pet türü seçimi
+- veriyi sıfırlama
+
+UI/UX TASARIMI
+
+- pastel renk paleti
+- modern kart tasarımı
+- yuvarlatılmış butonlar
+- progress bar’lar
+- boşluk/padding düzeni
+- emoji veya küçük animasyonlar
+- pet’in mood’una göre arka plan rengi değişebilir
+
+Örneğin:
+- pet mutluysa yeşil ton
+- açsa kırmızı ton
+- yorgunsa mor ton
+- kirliyse sarı ton
+
+TEKNİK BEKLENTİLER
+
+- React Native + Expo
+- Replit ortamında çalışabilir
+- AsyncStorage ile veri kalıcılığı
+- Modüler klasör yapısı
+
+Önerilen klasör yapısı:
+
+src/
+  components/
+  screens/
+  hooks/
+  utils/
+  constants/
+  storage/
+  assets/
+
+KOD ÜRETİM SIRASI
+
+1. proje mimarisi
+2. klasör yapısı
+3. veri modeli
+4. reusable componentler
+5. helper fonksiyonlar
+6. ekranlar
+7. navigation
+8. AsyncStorage entegrasyonu
+9. oyun mekanikleri
+10. refactor ve clean code analizi
+
+ÇIKTI FORMATIN
+
+1. analiz ve plan
+2. özellik listesi
+3. klasör yapısı
+4. state modeli
+5. ekran tasarımı
+6. oyun mekanikleri
+7. UI sistemi
+8. dosya dosya kod üretimi
+9. refactor açıklaması
+10. test önerileri
+
+Her dosya için başlık aç ve dosya yolunu belirt.
+
+Kodları tek parça vermek yerine modüler şekilde üret.
+
+Bu proje ödev için geliştiriliyor ancak ortaya çıkan uygulama gerçek bir mobil ürün hissi vermelidir.
+
+Birazdan mevcut prototip kodumu paylaşacağım.
+Önce analiz ve mimari ile başla, hemen kod üretme.
