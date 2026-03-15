@@ -1,0 +1,242 @@
+Sen kıdemli bir React Native / Expo geliştiricisi, mobil ürün tasarımcısı, UI/UX uzmanı ve clean code odaklı bir yazılım mühendisi gibi davran.
+
+Benim elimde temel seviyede geliştirilmiş bir “Dijital Evcil Hayvan (Tamagotchi)” mobil uygulama prototipi var. Bu projeyi Replit üzerinde geliştirerek, okul ödevi için profesyonel görünümlü, oyunlaştırılmış, etkileşimli, kullanıcı dostu ve Play Store’a çıkabilecek kaliteye yaklaşan bir mobil ürüne dönüştürmek istiyorum.
+
+Bu proje sadece çalışan birkaç butondan oluşan basit bir demo olmamalı. Uygulama, gerçekten “ürün” hissi vermeli. Kod düzenli, arayüz modern, oyunlaştırma güçlü, etkileşimler eğlenceli ve kullanıcı deneyimi tatmin edici olmalı.
+
+Uygulamanın ana fikri:
+- Kullanıcı bir dijital evcil hayvanı sahiplenir ve onunla ilgilenir.
+- Evcil hayvanın temel durumları vardır: açlık, mutluluk, enerji, temizlik, sağlık.
+- Kullanıcı günlük olarak pet ile ilgilenerek onun ihtiyaçlarını dengede tutar.
+- Uygulamada oyunlaştırma bulunmalıdır: XP, level, achievement/rozetler, streak, günlük görevler, ödüller.
+- Uygulama etkileşimli olmalıdır. Sadece “butona bas ve sayı değişsin” mantığında kalmasın. Kullanıcı, aktiviteleri daha fiziksel ve eğlenceli şekilde deneyimleyebilsin.
+
+ÇOK ÖNEMLİ GELİŞTİRME KURALLARI:
+- Var olan temel mantığı bozma.
+- Gereksiz complexity ekleme.
+- Basit ama profesyonel bir çözüm üret.
+- Kodun gerçekten çalışabilir olmasına odaklan.
+- Her öneriyi uygulanabilirlik açısından değerlendir.
+- UI’ı abartılı değil, modern ve dengeli yap.
+- Her dosyada isimlendirmeyi tutarlı yap.
+- Magic number’ları azalt.
+- Edge case’leri göz ardı etme.
+- Kod üretmeden önce kısa bir plan ver.
+- Her aşamadan sonra bir sonraki mantıklı adımı söyle.
+- Kodları tek blokta, düzensiz ve açıklamasız verme.
+- Önce analiz et, sonra mimari öner, sonra dosya yapısı çıkar, sonra kod üret.
+- Her şeyi tek seferde karmaşıklaştırma; uygulanabilir, sade ama kaliteli ilerle.
+- Mevcut prototip mantığını tamamen yıkma; onu ürün seviyesine taşı.
+- React Native / Expo best practice’lerine uy.
+- Replit ortamında çalışabilecek, anlaşılır ve düzenli bir proje yapısı kur.
+- Kod tekrarını azalt.
+- Reusable component kullan.
+- İş mantığını UI’dan mümkün olduğunca ayır.
+- Tüm stat değerlerini güvenli aralıkta tut (örneğin 0–100).
+- Uygulama videosunda ve ekran görüntülerinde etkileyici görünecek bir tasarım oluştur.
+- Kullanıcıya etkileşim hissi ver.
+- Gerekirse sürükleme, dokunma, basılı tutma, küçük animasyonlar ve durum değişimleri kullan.
+- Ama bunları aşırı karmaşık hale getirme; uygulanabilir ve stabil olsun.
+
+UYGULAMANIN TEMEL İÇERİĞİ:
+Bu bir dijital evcil hayvan bakım uygulaması olacak.
+Pet için önerilen temel stateler:
+- hunger
+- happiness
+- energy
+- cleanliness
+- health
+- xp
+- level
+- streak
+- achievements
+- dailyTasks
+- coins veya rewardPoints
+
+PET İLE ETKİLEŞİM BÖLÜMÜ ÇOK GÜÇLÜ OLMALI:
+Aksiyonları sadece klasik buton mantığında bırakma. Aşağıdaki detayları ürün mantığına uygun şekilde tasarla:
+
+1. BESLEME BÖLÜMÜ
+- Kullanıcı yalnızca “Besle” butonuna basmasın.
+- Farklı yiyecek seçenekleri olsun. Örneğin mama, balık, süt, ödül bisküvisi gibi.
+- Kullanıcı seçtiği yemeği pet’e doğru sürükleyebilsin veya pet’in ağzına götürebilsin.
+- Yiyecek pet’in ağzına ulaştığında küçük bir tepki oluşsun:
+  - pet mutlu ifade versin
+  - açlık azalsın
+  - mutluluk biraz artsın
+  - XP kazandırılsın
+- Farklı yemeklerin etkileri farklı olabilir ama gereksiz karmaşıklık oluşturma.
+- Besleme akışı görsel olarak tatmin edici olsun.
+- Gerekirse sürükle-bırak yerine basit dokunma + hedefe götürme yaklaşımı kullan; ama etkileşim hissi mutlaka olsun.
+
+2. OYNAMA BÖLÜMÜ
+- Sadece “Oyna” butonu olmasın.
+- Kullanıcı pet’e dokunduğunda, pet tepki versin.
+- Pet’e art arda hafif dokunuşlar veya ekrana dokunma ile eğlenme mantığı kurulabilir.
+- Örneğin kalp, yıldız, sevinç emojisi veya küçük bounce animasyonu gösterilebilir.
+- Oyun sonunda mutluluk artsın, enerji biraz azalsın, XP gelsin.
+- Pet’in keyifli hale geldiği hissedilsin.
+- Bu kısım basit bir mini etkileşim olarak tasarlansın; ama ürün hissi versin.
+
+3. UYUTMA BÖLÜMÜ
+- Uyutma sadece sayı değiştiren bir işlem olmasın.
+- Kullanıcı “Uyut” moduna geçtiğinde ortam değişsin.
+- Odanın ışığı kapansın veya ekran koyu tema / gece moduna geçsin.
+- Pet uyku animasyonuna veya sakin yüz ifadesine geçsin.
+- Ay, yıldız, loş arka plan gibi basit ama etkili detaylar eklenebilir.
+- Bir süre sonra enerji artsın, sağlık biraz iyileşsin.
+- İstersen “ışığı kapat”, “battaniyeyi çek”, “ninni modu” gibi çok hafif etkileşimler öner; ama uygulanabilir kalsın.
+
+4. TEMİZLEME BÖLÜMÜ
+- Temizleme sadece “Temizle” butonu ile bitmesin.
+- Kullanıcı sabunu pet’e götürebilsin.
+- Sabun değdiğinde köpük efekti oluşsun.
+- Kullanıcı suya dokunduğunda veya durulama alanına geçtiğinde pet temizlensin.
+- Temizlik arttıkça pet daha mutlu görünsün.
+- Kirliyken pet’in yüz ifadesi farklı, temizlenince daha mutlu olabilir.
+- Bu bölüm basit ama çok tatmin edici bir etkileşim sunsun.
+
+5. BAKIM / HEAL / CARE BÖLÜMÜ
+- Pet’in sağlık durumu düşünce bakım yapılabilsin.
+- Örneğin vitamin, kalp, ilgi, dinlenme ya da mini şefkat etkileşimi olabilir.
+- Çok karmaşık medikal sistem kurma.
+- Basit ama anlamlı bir bakım mantığı olsun.
+
+6. GÜNLÜK GİRİŞ ÖDÜLÜ
+- Kullanıcı günün ilk girişinde ödül alsın.
+- Coin, XP veya özel ödül verilebilir.
+- Kullanıcıya küçük bir karşılama kutusu veya modal gösterilebilir.
+
+OYUNLAŞTIRMA ÇOK İYİ TASARLANSIN:
+Aşağıdaki sistemler uygulamada yer alsın:
+
+- XP sistemi
+- level sistemi
+- achievement / rozet sistemi
+- streak sistemi
+- günlük görevler
+- ödüller
+- ilerleme hissi
+- kullanıcıyı tekrar uygulamaya döndüren küçük hedefler
+
+Örnek achievement fikirleri:
+- İlk Besleme
+- Oyun Arkadaşı
+- Temizlik Ustası
+- Uyku Koruyucusu
+- 3 Günlük Streak
+- 100 XP Kazandın
+- Pet’i Çok Mutlu Ettin
+- İlk Günlük Görev Tamamlandı
+
+DAHA PROFESYONEL ÜRÜN HİSSİ İÇİN İSTEDİĞİM EKRANLAR:
+- Home Screen
+- Activities / Care Screen
+- Achievements Screen
+- Stats Screen
+- Settings / Profile Screen
+
+HOME SCREEN İÇERİĞİ:
+- pet görünümü
+- pet adı
+- mevcut mood
+- stat barları
+- hızlı aksiyon alanı
+- level ve XP alanı
+- streak bilgisi
+- günlük görev özeti
+
+ACTIVITIES / CARE SCREEN İÇERİĞİ:
+- besleme etkileşimi
+- oynama etkileşimi
+- uyutma etkileşimi
+- temizleme etkileşimi
+- bakım etkileşimi
+
+ACHIEVEMENTS SCREEN:
+- açılan rozetler
+- kilitli rozetler
+- kazanma koşulları
+
+STATS SCREEN:
+- toplam besleme sayısı
+- toplam oyun sayısı
+- toplam uyutma sayısı
+- toplam temizlik sayısı
+- toplam XP
+- mevcut level
+- en uzun streak
+
+SETTINGS / PROFILE SCREEN:
+- pet adı değiştirme
+- pet türü seçme
+- tema/renk seçimi varsa
+- veriyi sıfırlama
+- basit profil ayarları
+
+TEKNİK BEKLENTİLER:
+- React Native + Expo ile uyumlu olsun
+- Replit üzerinde anlaşılır şekilde geliştirilebilsin
+- Çok ağır bağımlılık kullanma
+- Gerekirse AsyncStorage kullanarak veri kalıcılığı sağla
+- State yönetimini sade ama düzenli tut
+- Hooks yapısını mantıklı kullan
+- Kod modüler olsun
+- Klasör yapısı profesyonel ama öğrenci dostu olsun
+- Utility fonksiyonları ayır
+- Constants dosyaları kullan
+- Business logic’i mümkün olduğunca component dışına taşı
+- Clamp mantığı kur
+- Mood hesaplama helper’ı yaz
+- Achievement kontrolünü ayrı yap
+- Günlük giriş kontrolünü ayrı yap
+- Tekrarlı style ve action mantıklarını azalt
+
+UI/UX TASARIM BEKLENTİLERİ:
+- modern ve dengeli görünüm
+- yuvarlatılmış kartlar
+- tatlı ama çocukça olmayan renk paleti
+- pastel veya soft renkler
+- temiz boşluk kullanımı
+- iyi tipografi
+- küçük animasyonlar veya görsel tepkiler
+- her aktivitenin farklı görsel atmosferi olsun
+- pet’in ruh hali ekranda net hissedilsin
+- mutluysa canlı
+- yorgunsa sakin
+- açsa biraz üzgün
+- kirliyse rahatsız görünen bir tema
+
+ÇIKTI ŞEKLİ:
+Bana aşağıdaki sırayla cevap ver:
+
+1. Kısa analiz ve ürün planı
+2. MVP ve Final özellik listesi
+3. Klasör yapısı önerisi
+4. Veri modeli ve state tasarımı
+5. Ekran akışı
+6. Oyun mekanikleri
+7. UI/UX sistemi
+8. Kodlama planı
+9. Dosya dosya kod üretimi
+10. Clean code ve refactor açıklaması
+11. Test önerileri ve edge case değerlendirmesi
+12. Sonraki mantıklı adım
+
+KOD ÜRETİRKEN ŞUNLARA UY:
+- Her dosya için başlık aç
+- Dosya yolunu belirt
+- Kodları karıştırma
+- Kısa ama açıklayıcı notlar ekle
+- Gerçekten çalışabilir olmaya odaklan
+- Aşırı karmaşık mimariler kurma
+- Gerekirse önce MVP’yi üret, sonra enhancement adımlarını ekle
+- Varsa mevcut kodumu referans al ve ona göre refactor et
+- Mevcut mantığı koruyarak geliştir
+
+Son olarak:
+Ben bu uygulamayı ödev kapsamında geliştireceğim ama ortaya çıkan şey sıradan bir ödev gibi görünmemeli. Replit üzerinde geliştirilebilir, mantıklı, temiz, şık, oyunlaştırılmış, etkileşimli ve sunuma uygun bir mobil uygulama çıkarmana ihtiyacım var.
+
+Birazdan mevcut kodumu paylaşacağım.
+Önce sadece analiz, plan ve mimari ile başla.
+Hemen kod üretme.
