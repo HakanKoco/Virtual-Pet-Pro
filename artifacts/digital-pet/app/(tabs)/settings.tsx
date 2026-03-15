@@ -17,6 +17,7 @@ import { Colors } from "@/constants/colors";
 import { usePet } from "@/context/PetContext";
 import { formatNumber } from "@/utils/petHelpers";
 import { getLevelTitle } from "@/constants/gameConfig";
+import { PET_TYPES, getPetTypeConfig } from "@/constants/petTypes";
 
 interface SettingsRowProps {
   icon: keyof typeof Ionicons.glyphMap;
@@ -67,7 +68,7 @@ function SettingsRow({
 
 export default function SettingsScreen() {
   const insets = useSafeAreaInsets();
-  const { petState, renamePet, resetPet } = usePet();
+  const { petState, renamePet, changePetType, resetPet } = usePet();
   const [editing, setEditing] = useState(false);
   const [nameInput, setNameInput] = useState(petState.name);
 
@@ -102,6 +103,7 @@ export default function SettingsScreen() {
   };
 
   const levelTitle = getLevelTitle(petState.level);
+  const currentPetConfig = getPetTypeConfig(petState.petType);
 
   return (
     <View style={[styles.root, { backgroundColor: Colors.background }]}>
@@ -120,22 +122,64 @@ export default function SettingsScreen() {
         <Text style={styles.screenTitle}>Ayarlar</Text>
 
         <View style={styles.profileSummary}>
-          <View style={styles.petEmoji}>
-            <Text style={{ fontSize: 40 }}>🐱</Text>
+          <View style={[styles.petEmojiBg, { borderColor: `${currentPetConfig.color}40` }]}>
+            <Text style={{ fontSize: 36 }}>{currentPetConfig.emoji.happy}</Text>
           </View>
           <View style={styles.petInfo}>
             <Text style={styles.petName}>{petState.name}</Text>
+            <Text style={[styles.petType, { color: currentPetConfig.color }]}>
+              {currentPetConfig.name} · {currentPetConfig.description}
+            </Text>
             <Text style={styles.petLevel}>
               Seviye {petState.level} · {levelTitle}
             </Text>
-            <Text style={styles.petXp}>
-              {formatNumber(petState.totalXp)} toplam XP
-            </Text>
+            <View style={styles.coinRow}>
+              <Ionicons name="logo-bitcoin" size={13} color={Colors.secondary} />
+              <Text style={styles.coinText}>{petState.coins} coin</Text>
+            </View>
           </View>
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionLabel}>Evcil Hayvan</Text>
+          <Text style={styles.sectionLabel}>Evcil Hayvan Türü</Text>
+          <View style={styles.petTypeGrid}>
+            {PET_TYPES.map((pet) => {
+              const isSelected = petState.petType === pet.id;
+              return (
+                <Pressable
+                  key={pet.id}
+                  onPress={() => changePetType(pet.id)}
+                  style={[
+                    styles.petTypeCard,
+                    isSelected && {
+                      borderColor: pet.color,
+                      backgroundColor: `${pet.color}15`,
+                    },
+                  ]}
+                >
+                  <Text style={styles.petTypeEmoji}>{pet.emoji.happy}</Text>
+                  <Text
+                    style={[
+                      styles.petTypeName,
+                      isSelected && { color: pet.color },
+                    ]}
+                  >
+                    {pet.name}
+                  </Text>
+                  <Text style={styles.petTypeDesc}>{pet.description}</Text>
+                  {isSelected && (
+                    <View style={[styles.selectedBadge, { backgroundColor: pet.color }]}>
+                      <Ionicons name="checkmark" size={10} color="#fff" />
+                    </View>
+                  )}
+                </Pressable>
+              );
+            })}
+          </View>
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionLabel}>Evcil Hayvan Adı</Text>
           <View style={styles.sectionCard}>
             {editing ? (
               <View style={styles.nameEditRow}>
@@ -197,6 +241,15 @@ export default function SettingsScreen() {
                 <Text style={styles.rightValue}>
                   {formatNumber(petState.totalXp)}
                 </Text>
+              }
+            />
+            <View style={styles.divider} />
+            <SettingsRow
+              icon="logo-bitcoin"
+              iconColor={Colors.secondary}
+              label="Coin"
+              rightElement={
+                <Text style={styles.rightValue}>{petState.coins}</Text>
               }
             />
             <View style={styles.divider} />
@@ -280,13 +333,14 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: Colors.cardBorder,
   },
-  petEmoji: {
+  petEmojiBg: {
     width: 66,
     height: 66,
     borderRadius: 33,
     backgroundColor: Colors.backgroundTertiary,
     alignItems: "center",
     justifyContent: "center",
+    borderWidth: 2,
   },
   petInfo: {
     flex: 1,
@@ -297,13 +351,23 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontFamily: "Inter_700Bold",
   },
+  petType: {
+    fontSize: 12,
+    fontFamily: "Inter_500Medium",
+  },
   petLevel: {
     color: Colors.textSecondary,
-    fontSize: 13,
+    fontSize: 12,
     fontFamily: "Inter_400Regular",
   },
-  petXp: {
-    color: Colors.xp,
+  coinRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    marginTop: 2,
+  },
+  coinText: {
+    color: Colors.secondary,
     fontSize: 12,
     fontFamily: "Inter_600SemiBold",
   },
@@ -317,6 +381,46 @@ const styles = StyleSheet.create({
     textTransform: "uppercase",
     letterSpacing: 1,
     paddingHorizontal: 4,
+  },
+  petTypeGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+  },
+  petTypeCard: {
+    width: "47%",
+    backgroundColor: Colors.card,
+    borderRadius: 14,
+    padding: 12,
+    alignItems: "center",
+    gap: 4,
+    borderWidth: 2,
+    borderColor: Colors.cardBorder,
+    position: "relative",
+  },
+  petTypeEmoji: {
+    fontSize: 32,
+  },
+  petTypeName: {
+    color: Colors.text,
+    fontSize: 14,
+    fontFamily: "Inter_600SemiBold",
+  },
+  petTypeDesc: {
+    color: Colors.textTertiary,
+    fontSize: 10,
+    fontFamily: "Inter_400Regular",
+    textAlign: "center",
+  },
+  selectedBadge: {
+    position: "absolute",
+    top: 8,
+    right: 8,
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    alignItems: "center",
+    justifyContent: "center",
   },
   sectionCard: {
     backgroundColor: Colors.card,

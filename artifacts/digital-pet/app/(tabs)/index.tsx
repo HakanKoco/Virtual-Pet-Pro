@@ -9,6 +9,7 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
+import { router } from "expo-router";
 
 import { Colors } from "@/constants/colors";
 import { ActionType } from "@/constants/gameConfig";
@@ -20,8 +21,10 @@ import { StreakBadge } from "@/components/StreakBadge";
 import { DailyTaskCard } from "@/components/DailyTaskCard";
 import { AchievementToast } from "@/components/AchievementToast";
 import { LevelUpModal } from "@/components/LevelUpModal";
+import { DailyRewardModal } from "@/components/DailyRewardModal";
 import { usePet } from "@/context/PetContext";
 import { AchievementId } from "@/constants/achievements";
+import { DailyRewardInfo } from "@/utils/dailyReward";
 
 const ACTIONS: ActionType[] = ["feed", "play", "sleep", "clean", "heal"];
 
@@ -30,6 +33,8 @@ export default function HomeScreen() {
   const {
     petState,
     performAction,
+    claimDailyReward,
+    isDailyRewardReady,
     newAchievements,
     clearNewAchievements,
     levelUpAnimation,
@@ -38,6 +43,31 @@ export default function HomeScreen() {
 
   const [currentToast, setCurrentToast] = useState<AchievementId | null>(null);
   const toastQueueRef = React.useRef<AchievementId[]>([]);
+
+  const [dailyRewardVisible, setDailyRewardVisible] = useState(isDailyRewardReady);
+  const [pendingReward, setPendingReward] = useState<DailyRewardInfo | null>(
+    isDailyRewardReady
+      ? { coins: 0, xp: 0, message: "Yükleniyor...", streakBonus: false }
+      : null
+  );
+
+  React.useEffect(() => {
+    if (isDailyRewardReady && !dailyRewardVisible) {
+      setDailyRewardVisible(true);
+      setPendingReward({
+        coins: 0,
+        xp: 0,
+        message: "Hoş geldin!",
+        streakBonus: false,
+      });
+    }
+  }, [isDailyRewardReady]);
+
+  const handleClaimReward = () => {
+    const reward = claimDailyReward();
+    setDailyRewardVisible(false);
+    setPendingReward(null);
+  };
 
   React.useEffect(() => {
     if (newAchievements.length > 0) {
@@ -64,6 +94,12 @@ export default function HomeScreen() {
   const topPadding = Platform.OS === "web" ? 67 : insets.top;
   const bottomPadding = Platform.OS === "web" ? 34 : 0;
 
+  const previewReward = React.useMemo(() => {
+    if (!isDailyRewardReady) return null;
+    const { calculateDailyReward } = require("@/utils/dailyReward");
+    return calculateDailyReward(petState.streak) as DailyRewardInfo;
+  }, [isDailyRewardReady, petState.streak]);
+
   return (
     <View style={[styles.root, { backgroundColor: Colors.background }]}>
       {currentToast && (
@@ -77,6 +113,13 @@ export default function HomeScreen() {
         visible={levelUpAnimation}
         level={petState.level}
         onClose={clearLevelUp}
+      />
+
+      <DailyRewardModal
+        visible={dailyRewardVisible}
+        reward={previewReward}
+        streak={petState.streak}
+        onClaim={handleClaimReward}
       />
 
       <ScrollView
@@ -93,9 +136,23 @@ export default function HomeScreen() {
       >
         <View style={styles.topBar}>
           <StreakBadge streak={petState.streak} />
-          <View style={styles.levelPill}>
-            <Ionicons name="star" size={14} color={Colors.xp} />
-            <Text style={styles.levelPillText}>Lv.{petState.level}</Text>
+          <View style={styles.rightBadges}>
+            {isDailyRewardReady && (
+              <Pressable
+                onPress={() => setDailyRewardVisible(true)}
+                style={styles.rewardBadge}
+              >
+                <Text style={styles.rewardBadgeText}>🎁</Text>
+              </Pressable>
+            )}
+            <View style={styles.coinPill}>
+              <Ionicons name="logo-bitcoin" size={13} color={Colors.secondary} />
+              <Text style={styles.coinText}>{petState.coins}</Text>
+            </View>
+            <View style={styles.levelPill}>
+              <Ionicons name="star" size={14} color={Colors.xp} />
+              <Text style={styles.levelPillText}>Lv.{petState.level}</Text>
+            </View>
           </View>
         </View>
 
@@ -131,7 +188,16 @@ export default function HomeScreen() {
         </View>
 
         <View style={styles.actionsCard}>
-          <Text style={styles.sectionTitle}>Aksiyonlar</Text>
+          <View style={styles.sectionTitleRow}>
+            <Text style={styles.sectionTitle}>Hızlı Aksiyonlar</Text>
+            <Pressable
+              onPress={() => router.push("/(tabs)/activities")}
+              style={styles.activitiesLink}
+            >
+              <Text style={styles.activitiesLinkText}>Tüm aktiviteler</Text>
+              <Ionicons name="arrow-forward" size={13} color={Colors.primary} />
+            </Pressable>
+          </View>
           <View style={styles.actionsGrid}>
             {ACTIONS.map((action) => (
               <ActionButton
@@ -165,6 +231,36 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
+  },
+  rightBadges: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  rewardBadge: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    backgroundColor: `${Colors.secondary}20`,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  rewardBadgeText: {
+    fontSize: 18,
+  },
+  coinPill: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    backgroundColor: `${Colors.secondary}20`,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 20,
+  },
+  coinText: {
+    color: Colors.secondary,
+    fontSize: 13,
+    fontFamily: "Inter_700Bold",
   },
   levelPill: {
     flexDirection: "row",
@@ -200,10 +296,25 @@ const styles = StyleSheet.create({
     borderColor: Colors.cardBorder,
     gap: 12,
   },
+  sectionTitleRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
   sectionTitle: {
     color: Colors.text,
     fontSize: 15,
     fontFamily: "Inter_600SemiBold",
+  },
+  activitiesLink: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+  },
+  activitiesLinkText: {
+    color: Colors.primary,
+    fontSize: 12,
+    fontFamily: "Inter_500Medium",
   },
   statsGrid: {
     gap: 0,

@@ -3,13 +3,14 @@ import { Animated, StyleSheet, Text, View } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 
 import { Colors } from "@/constants/colors";
+import { getPetTypeConfig } from "@/constants/petTypes";
 import {
   getMood,
   getMoodColor,
-  getMoodEmoji,
   getMoodLabel,
   PetStats,
 } from "@/utils/petHelpers";
+import { usePet } from "@/context/PetContext";
 
 interface PetAvatarProps {
   name: string;
@@ -18,10 +19,27 @@ interface PetAvatarProps {
 }
 
 export function PetAvatar({ name, stats, size = "large" }: PetAvatarProps) {
+  const { petState } = usePet();
+  const petTypeConfig = getPetTypeConfig(petState.petType);
+
   const mood = getMood(stats);
   const moodColor = getMoodColor(mood);
-  const moodEmoji = getMoodEmoji(mood);
   const moodLabel = getMoodLabel(mood);
+
+  // Pick pet emoji based on mood
+  const getEmoji = (): string => {
+    const e = petTypeConfig.emoji;
+    switch (mood) {
+      case "ecstatic": return e.excited;
+      case "happy": return e.happy;
+      case "content": return e.happy;
+      case "neutral": return e.neutral;
+      case "sad": return e.sad;
+      case "unhappy": return e.sad;
+      case "desperate": return e.sick;
+      default: return e.neutral;
+    }
+  };
 
   const floatAnim = useRef(new Animated.Value(0)).current;
   const glowAnim = useRef(new Animated.Value(0.6)).current;
@@ -61,6 +79,7 @@ export function PetAvatar({ name, stats, size = "large" }: PetAvatarProps) {
   const isLarge = size === "large";
   const avatarSize = isLarge ? 130 : 70;
   const emojiSize = isLarge ? 64 : 34;
+  const petColor = petTypeConfig.color;
 
   return (
     <View style={styles.container}>
@@ -87,7 +106,7 @@ export function PetAvatar({ name, stats, size = "large" }: PetAvatarProps) {
         ]}
       >
         <LinearGradient
-          colors={[`${moodColor}30`, `${moodColor}10`]}
+          colors={[`${petColor}30`, `${moodColor}15`]}
           style={[
             styles.avatarBg,
             {
@@ -98,7 +117,7 @@ export function PetAvatar({ name, stats, size = "large" }: PetAvatarProps) {
             },
           ]}
         >
-          <Text style={{ fontSize: emojiSize }}>{moodEmoji}</Text>
+          <Text style={{ fontSize: emojiSize }}>{getEmoji()}</Text>
         </LinearGradient>
       </Animated.View>
 
@@ -110,6 +129,9 @@ export function PetAvatar({ name, stats, size = "large" }: PetAvatarProps) {
               {moodLabel}
             </Text>
           </View>
+          <Text style={[styles.petTypeBadge, { color: petColor }]}>
+            {petTypeConfig.name} · {petTypeConfig.description}
+          </Text>
         </View>
       )}
     </View>
@@ -137,7 +159,7 @@ const styles = StyleSheet.create({
   },
   nameBlock: {
     alignItems: "center",
-    gap: 6,
+    gap: 5,
   },
   nameText: {
     color: Colors.text,
@@ -152,5 +174,9 @@ const styles = StyleSheet.create({
   moodText: {
     fontSize: 13,
     fontFamily: "Inter_600SemiBold",
+  },
+  petTypeBadge: {
+    fontSize: 11,
+    fontFamily: "Inter_400Regular",
   },
 });

@@ -9,11 +9,7 @@ import React, {
   useState,
 } from "react";
 
-import {
-  ACHIEVEMENTS,
-  AchievementId,
-  Achievement,
-} from "@/constants/achievements";
+import { ACHIEVEMENTS, AchievementId, Achievement } from "@/constants/achievements";
 import {
   ACTION_EFFECTS,
   ActionType,
@@ -23,9 +19,15 @@ import {
   XP_PER_LEVEL,
   MAX_LEVEL,
 } from "@/constants/gameConfig";
+import { PetType, FoodItem } from "@/constants/petTypes";
 import { clamp, PetStats } from "@/utils/petHelpers";
+import {
+  isDailyRewardAvailable,
+  calculateDailyReward,
+  DailyRewardInfo,
+} from "@/utils/dailyReward";
 
-const STORAGE_KEY = "digital_pet_state_v2";
+const STORAGE_KEY = "digital_pet_state_v3";
 
 export interface DailyTasks {
   feed: number;
@@ -38,12 +40,16 @@ export interface DailyTasks {
 
 export interface PetState {
   name: string;
+  petType: PetType;
   stats: PetStats;
   level: number;
   xp: number;
   totalXp: number;
+  coins: number;
+  totalCoinsEarned: number;
   streak: number;
   lastPlayDate: string | null;
+  lastDailyRewardDate: string | null;
   unlockedAchievements: AchievementId[];
   actionCounts: Record<ActionType, number>;
   actionCooldowns: Record<ActionType, number>;
@@ -55,8 +61,12 @@ export interface PetState {
 interface PetContextValue {
   petState: PetState;
   performAction: (action: ActionType) => { success: boolean; message: string };
+  feedWithFood: (food: FoodItem) => void;
   renamePet: (name: string) => void;
+  changePetType: (type: PetType) => void;
   resetPet: () => void;
+  claimDailyReward: () => DailyRewardInfo | null;
+  isDailyRewardReady: boolean;
   getAchievementProgress: () => Achievement[];
   newAchievements: AchievementId[];
   clearNewAchievements: () => void;
@@ -99,12 +109,16 @@ const defaultActionCooldowns: Record<ActionType, number> = {
 
 const createDefaultState = (): PetState => ({
   name: "Minik",
+  petType: "cat",
   stats: { ...defaultStats },
   level: 1,
   xp: 0,
   totalXp: 0,
+  coins: 50,
+  totalCoinsEarned: 50,
   streak: 0,
   lastPlayDate: null,
+  lastDailyRewardDate: null,
   unlockedAchievements: [],
   actionCounts: { ...defaultActionCounts },
   actionCooldowns: { ...defaultActionCooldowns },
@@ -138,7 +152,6 @@ export function PetProvider({ children }: { children: React.ReactNode }) {
         return { ...prev, stats: newStats };
       });
     }, DECAY_INTERVAL_MS);
-
     return () => {
       if (decayTimerRef.current) clearInterval(decayTimerRef.current);
     };
@@ -158,7 +171,11 @@ export function PetProvider({ children }: { children: React.ReactNode }) {
         (Object.keys(updatedCooldowns) as ActionType[]).forEach((key) => {
           if (updatedCooldowns[key] < now) updatedCooldowns[key] = 0;
         });
-        setPetState({ ...saved, actionCooldowns: updatedCooldowns });
+        setPetState({
+          ...createDefaultState(),
+          ...saved,
+          actionCooldowns: updatedCooldowns,
+        });
       }
     } catch {}
   };
@@ -173,26 +190,38 @@ export function PetProvider({ children }: { children: React.ReactNode }) {
     const now = new Date();
     const todayStr = now.toDateString();
     if (state.lastPlayDate === todayStr) return state;
-
     if (state.lastPlayDate) {
       const last = new Date(state.lastPlayDate);
-      const diffHours =
-        (now.getTime() - last.getTime()) / (1000 * 60 * 60);
+      const diffHours = (now.getTime() - last.getTime()) / (1000 * 60 * 60);
       if (diffHours > STREAK_RESET_HOURS) {
         return { ...state, streak: 1, lastPlayDate: todayStr };
       }
     }
+    return { ...state, streak: state.streak + 1, lastPlayDate: todayStr };
+  };
+
+  const applyXpAndLevel = (
+    state: PetState,
+    xpGain: number
+  ): { state: PetState; didLevelUp: boolean } => {
+    let newXp = state.xp + xpGain;
+    let newLevel = state.level;
+    let didLevelUp = false;
+    const xpNeeded = newLevel * XP_PER_LEVEL;
+    if (newXp >= xpNeeded && newLevel < MAX_LEVEL) {
+      newXp -= xpNeeded;
+      newLevel++;
+      didLevelUp = true;
+    }
     return {
-      ...state,
-      streak: state.streak + 1,
-      lastPlayDate: todayStr,
+      state: { ...state, xp: newXp, level: newLevel, totalXp: state.totalXp + xpGain },
+      didLevelUp,
     };
   };
 
   const checkAchievements = useCallback(
     (state: PetState): { state: PetState; unlocked: AchievementId[] } => {
       const newlyUnlocked: AchievementId[] = [];
-
       const check = (id: AchievementId, condition: boolean) => {
         if (condition && !state.unlockedAchievements.includes(id)) {
           newlyUnlocked.push(id);
@@ -218,10 +247,8 @@ export function PetProvider({ children }: { children: React.ReactNode }) {
       check("total_xp_500", state.totalXp >= 500);
       check("total_xp_1000", state.totalXp >= 1000);
       check("total_xp_5000", state.totalXp >= 5000);
-
       const allHigh = Object.values(state.stats).every((v) => v >= 80);
       check("all_stats_max", allHigh);
-
       const today = new Date().toDateString();
       const tasks = state.dailyTasks;
       const perfectDay =
@@ -267,13 +294,8 @@ export function PetProvider({ children }: { children: React.ReactNode }) {
       setPetState((prev) => {
         const newStats = { ...prev.stats };
         const statKeys: (keyof PetStats)[] = [
-          "hunger",
-          "happiness",
-          "energy",
-          "cleanliness",
-          "health",
+          "hunger", "happiness", "energy", "cleanliness", "health",
         ];
-
         statKeys.forEach((key) => {
           const delta = (effects as Record<string, number>)[key];
           if (typeof delta === "number") {
@@ -281,17 +303,11 @@ export function PetProvider({ children }: { children: React.ReactNode }) {
           }
         });
 
-        const xpGain = effects.xp;
-        let newXp = prev.xp + xpGain;
-        let newLevel = prev.level;
-        let didLevelUp = false;
-
-        const xpNeeded = newLevel * XP_PER_LEVEL;
-        if (newXp >= xpNeeded && newLevel < MAX_LEVEL) {
-          newXp -= xpNeeded;
-          newLevel++;
-          didLevelUp = true;
-        }
+        const coinGain = 5;
+        const { state: xpState, didLevelUp } = applyXpAndLevel(
+          { ...prev, stats: newStats },
+          effects.xp
+        );
 
         if (didLevelUp) {
           setLevelUpAnimation(true);
@@ -305,24 +321,18 @@ export function PetProvider({ children }: { children: React.ReactNode }) {
             ? { ...prevTasks, [action]: prevTasks[action] + 1 }
             : { ...defaultDailyTasks(), [action]: 1 };
 
-        const newCooldowns = {
-          ...prev.actionCooldowns,
-          [action]: now + effects.cooldown,
-        };
-
-        const newActionCounts = {
-          ...prev.actionCounts,
-          [action]: prev.actionCounts[action] + 1,
-        };
-
         const updatedState: PetState = {
-          ...prev,
-          stats: newStats,
-          level: newLevel,
-          xp: newXp,
-          totalXp: prev.totalXp + xpGain,
-          actionCooldowns: newCooldowns,
-          actionCounts: newActionCounts,
+          ...xpState,
+          coins: prev.coins + coinGain,
+          totalCoinsEarned: prev.totalCoinsEarned + coinGain,
+          actionCooldowns: {
+            ...prev.actionCooldowns,
+            [action]: now + effects.cooldown,
+          },
+          actionCounts: {
+            ...prev.actionCounts,
+            [action]: prev.actionCounts[action] + 1,
+          },
           dailyTasks,
           totalActions: prev.totalActions + 1,
         };
@@ -331,7 +341,7 @@ export function PetProvider({ children }: { children: React.ReactNode }) {
         const { state: finalState, unlocked } = checkAchievements(withStreak);
 
         if (unlocked.length > 0) {
-          setNewAchievements((prev) => [...prev, ...unlocked]);
+          setNewAchievements((p) => [...p, ...unlocked]);
           Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
         }
 
@@ -343,8 +353,91 @@ export function PetProvider({ children }: { children: React.ReactNode }) {
     [petState, checkAchievements]
   );
 
+  const feedWithFood = useCallback((food: FoodItem) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    setPetState((prev) => {
+      const newStats: PetStats = {
+        ...prev.stats,
+        hunger: clamp(prev.stats.hunger + food.hungerBoost),
+        happiness: clamp(prev.stats.happiness + food.happinessBoost),
+        health: clamp(prev.stats.health + food.healthBoost),
+        energy: clamp(prev.stats.energy - 3),
+        cleanliness: clamp(prev.stats.cleanliness - 2),
+      };
+
+      const { state: xpState, didLevelUp } = applyXpAndLevel(
+        { ...prev, stats: newStats },
+        food.xp
+      );
+
+      if (didLevelUp) {
+        setLevelUpAnimation(true);
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      }
+
+      const today = new Date().toDateString();
+      const prevTasks = prev.dailyTasks;
+      const dailyTasks: DailyTasks =
+        prevTasks.date === today
+          ? { ...prevTasks, feed: prevTasks.feed + 1 }
+          : { ...defaultDailyTasks(), feed: 1 };
+
+      const now = Date.now();
+      const updatedState: PetState = {
+        ...xpState,
+        coins: prev.coins + food.coins,
+        totalCoinsEarned: prev.totalCoinsEarned + food.coins,
+        actionCooldowns: {
+          ...prev.actionCooldowns,
+          feed: now + ACTION_EFFECTS.feed.cooldown,
+        },
+        actionCounts: {
+          ...prev.actionCounts,
+          feed: prev.actionCounts.feed + 1,
+        },
+        dailyTasks,
+        totalActions: prev.totalActions + 1,
+      };
+
+      const withStreak = updateStreak(updatedState);
+      const { state: finalState, unlocked } = checkAchievements(withStreak);
+
+      if (unlocked.length > 0) {
+        setNewAchievements((p) => [...p, ...unlocked]);
+      }
+
+      return finalState;
+    });
+  }, [checkAchievements]);
+
+  const claimDailyReward = useCallback((): DailyRewardInfo | null => {
+    if (!isDailyRewardAvailable(petState.lastDailyRewardDate)) return null;
+
+    const reward = calculateDailyReward(petState.streak);
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+
+    setPetState((prev) => {
+      const { state: xpState } = applyXpAndLevel(prev, reward.xp);
+      return {
+        ...xpState,
+        coins: prev.coins + reward.coins,
+        totalCoinsEarned: prev.totalCoinsEarned + reward.coins,
+        lastDailyRewardDate: new Date().toISOString(),
+      };
+    });
+
+    return reward;
+  }, [petState.lastDailyRewardDate, petState.streak]);
+
+  const isDailyRewardReady = isDailyRewardAvailable(petState.lastDailyRewardDate);
+
   const renamePet = useCallback((name: string) => {
     setPetState((prev) => ({ ...prev, name }));
+  }, []);
+
+  const changePetType = useCallback((type: PetType) => {
+    setPetState((prev) => ({ ...prev, petType: type }));
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
   }, []);
 
   const resetPet = useCallback(() => {
@@ -370,8 +463,12 @@ export function PetProvider({ children }: { children: React.ReactNode }) {
       value={{
         petState,
         performAction,
+        feedWithFood,
         renamePet,
+        changePetType,
         resetPet,
+        claimDailyReward,
+        isDailyRewardReady,
         getAchievementProgress,
         newAchievements,
         clearNewAchievements,

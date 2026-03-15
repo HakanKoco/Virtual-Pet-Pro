@@ -16,6 +16,10 @@ function NativeTabLayout() {
         <Icon sf={{ default: "house", selected: "house.fill" }} />
         <Label>Hayvan</Label>
       </NativeTabs.Trigger>
+      <NativeTabs.Trigger name="activities">
+        <Icon sf={{ default: "gamecontroller", selected: "gamecontroller.fill" }} />
+        <Label>Aktivite</Label>
+      </NativeTabs.Trigger>
       <NativeTabs.Trigger name="achievements">
         <Icon sf={{ default: "trophy", selected: "trophy.fill" }} />
         <Label>Başarımlar</Label>
@@ -33,8 +37,6 @@ function NativeTabLayout() {
 }
 
 function ClassicTabLayout() {
-  const colorScheme = useColorScheme();
-  const isDark = true;
   const isIOS = Platform.OS === "ios";
   const isWeb = Platform.OS === "web";
 
@@ -78,6 +80,18 @@ function ClassicTabLayout() {
               <SymbolView name="house.fill" tintColor={color} size={22} />
             ) : (
               <Feather name="home" size={22} color={color} />
+            ),
+        }}
+      />
+      <Tabs.Screen
+        name="activities"
+        options={{
+          title: "Aktivite",
+          tabBarIcon: ({ color }) =>
+            isIOS ? (
+              <SymbolView name="gamecontroller.fill" tintColor={color} size={22} />
+            ) : (
+              <Ionicons name="game-controller-outline" size={22} color={color} />
             ),
         }}
       />
