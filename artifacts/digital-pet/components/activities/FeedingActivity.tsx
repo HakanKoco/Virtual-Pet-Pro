@@ -9,12 +9,14 @@ import {
 import * as Haptics from "expo-haptics";
 
 import { Colors } from "@/constants/colors";
+import { useSound } from "@/hooks/useSound";
 import { FOOD_ITEMS, FoodItem } from "@/constants/petTypes";
 import { usePet } from "@/context/PetContext";
 import { PetAvatar } from "@/components/PetAvatar";
 
 export function FeedingActivity() {
   const { petState, feedWithFood } = usePet();
+  const { play } = useSound();
   const [selectedFood, setSelectedFood] = useState<FoodItem | null>(null);
   const [isFeeding, setIsFeeding] = useState(false);
   const [lastFed, setLastFed] = useState<string | null>(null);
@@ -81,6 +83,7 @@ export function FeedingActivity() {
     setIsFeeding(true);
     setLastFed(selectedFood.name);
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+    play("eat", 0.7);
 
     animateFeed();
     feedWithFood(selectedFood);

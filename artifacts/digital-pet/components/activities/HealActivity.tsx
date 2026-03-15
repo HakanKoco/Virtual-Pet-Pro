@@ -11,6 +11,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 
 import { Colors } from "@/constants/colors";
+import { useSound } from "@/hooks/useSound";
 import { usePet } from "@/context/PetContext";
 
 interface CareItem {
@@ -29,6 +30,7 @@ const CARE_ITEMS: CareItem[] = [
 
 export function HealActivity() {
   const { petState, performAction } = usePet();
+  const { play } = useSound();
   const [selectedCare, setSelectedCare] = useState<CareItem | null>(null);
   const [isHealing, setIsHealing] = useState(false);
   const [healDone, setHealDone] = useState(false);
@@ -69,6 +71,7 @@ export function HealActivity() {
     if (!selectedCare || isHealing) return;
     setIsHealing(true);
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    play("heal", 0.7);
 
     animateHeal();
     performAction("heal");

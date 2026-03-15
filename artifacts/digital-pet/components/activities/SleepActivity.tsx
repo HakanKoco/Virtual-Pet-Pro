@@ -11,12 +11,14 @@ import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 
 import { Colors } from "@/constants/colors";
+import { useSound } from "@/hooks/useSound";
 import { usePet } from "@/context/PetContext";
 
 const SLEEP_DURATION = 3000;
 
 export function SleepActivity() {
   const { petState, performAction } = usePet();
+  const { play } = useSound();
   const [isSleeping, setIsSleeping] = useState(false);
   const [sleepDone, setSleepDone] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -40,6 +42,7 @@ export function SleepActivity() {
     if (isSleeping || sleepDone) return;
     setIsSleeping(true);
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    play("sleep", 0.5);
 
     // Darken overlay
     Animated.timing(overlayOpacity, {

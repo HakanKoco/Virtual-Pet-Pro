@@ -9,6 +9,7 @@ import {
 import * as Haptics from "expo-haptics";
 
 import { Colors } from "@/constants/colors";
+import { useSound } from "@/hooks/useSound";
 import { usePet } from "@/context/PetContext";
 import { PetAvatar } from "@/components/PetAvatar";
 
@@ -25,6 +26,7 @@ interface FloatingReaction {
 
 export function PlayActivity() {
   const { petState, performAction } = usePet();
+  const { play } = useSound();
   const [tapCount, setTapCount] = useState(0);
   const [reactions, setReactions] = useState<FloatingReaction[]>([]);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -36,6 +38,7 @@ export function PlayActivity() {
     if (isPlaying) return;
 
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    play("playTap", 0.4);
 
     // Pet bounce + slight wiggle
     Animated.sequence([
@@ -101,6 +104,7 @@ export function PlayActivity() {
     if (newCount >= MAX_TAPS) {
       setIsPlaying(true);
       performAction("play");
+      play("play", 0.7);
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       setTimeout(() => {
         setTapCount(0);

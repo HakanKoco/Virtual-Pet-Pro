@@ -11,6 +11,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 
 import { Colors } from "@/constants/colors";
+import { useSound } from "@/hooks/useSound";
 import { usePet } from "@/context/PetContext";
 
 const SOAP_TAPS = 6;
@@ -26,6 +27,7 @@ interface Bubble {
 
 export function CleanActivity() {
   const { petState, performAction } = usePet();
+  const { play } = useSound();
   const [soapCount, setSoapCount] = useState(0);
   const [bubbles, setBubbles] = useState<Bubble[]>([]);
   const [phase, setPhase] = useState<"idle" | "soaping" | "rinsing" | "done">("idle");
@@ -59,6 +61,7 @@ export function CleanActivity() {
     if (phase !== "idle" && phase !== "soaping") return;
     setPhase("soaping");
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    play("cleanBubble", 0.35);
 
     // Random bubbles around pet
     const count = 3;
@@ -90,6 +93,7 @@ export function CleanActivity() {
 
   const handleRinse = () => {
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    play("clean", 0.6);
     setBubbles([]);
     performAction("clean");
 

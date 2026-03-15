@@ -15,6 +15,7 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { PetProvider } from "@/context/PetContext";
+import { soundManager } from "@/utils/soundManager";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -39,7 +40,12 @@ export default function RootLayout() {
   useEffect(() => {
     if (fontsLoaded || fontError) {
       SplashScreen.hideAsync();
+      // Start background music after fonts load
+      soundManager.startBackground();
     }
+    return () => {
+      soundManager.cleanup();
+    };
   }, [fontsLoaded, fontError]);
 
   if (!fontsLoaded && !fontError) return null;

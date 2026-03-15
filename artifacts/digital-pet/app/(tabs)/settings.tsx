@@ -18,6 +18,7 @@ import { usePet } from "@/context/PetContext";
 import { formatNumber } from "@/utils/petHelpers";
 import { getLevelTitle } from "@/constants/gameConfig";
 import { PET_TYPES, getPetTypeConfig } from "@/constants/petTypes";
+import { soundManager } from "@/utils/soundManager";
 
 interface SettingsRowProps {
   icon: keyof typeof Ionicons.glyphMap;
@@ -71,6 +72,8 @@ export default function SettingsScreen() {
   const { petState, renamePet, changePetType, resetPet } = usePet();
   const [editing, setEditing] = useState(false);
   const [nameInput, setNameInput] = useState(petState.name);
+  const [bgMusicOn, setBgMusicOn] = useState(true);
+  const [sfxOn, setSfxOn] = useState(true);
 
   const topPadding = Platform.OS === "web" ? 67 : insets.top;
   const bottomPadding = Platform.OS === "web" ? 34 : 0;
